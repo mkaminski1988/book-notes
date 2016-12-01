@@ -8,7 +8,7 @@ There are several ways to publish an object:
 1. Storing object references in a public static field.
 2. Returning a reference from a nonprivate method.
 3. Publishing an object that also publishes any objects referred to by its nonprivate fields.
-4. Calling *alien* methods
+4. Calling *alien* methods.
 5. Publishing an inner class instance, because inner classes contain a hidden reference to the enclosing instance.
 
 > From the point of view of class A, an alien method is a method not fully "understood" by A.
@@ -34,7 +34,22 @@ There are several ways to publish an object:
 
 ### 3.3.1 Ad-hoc thread confinement
 
+* A fragile way to confine an object to a target thread that does not use any of the language features like visibility modifiers or local variables.
+* Thread confinement can be accomplished using volatile variables, provided only one thread performs the read-modify-write operations. Other read-only threads can see the latest values without synchronization.
+* Use this method sparingly—prefer stack confinement or `ThreadLocal`.
 
+### 3.3.2 Stack confinement
+
+* Create local references inside methods and don't return them.
+* Works even for non-threadsafe objects.
+* The requirement that the object be confined locally is not usually clear, so ensure that it gets documented.
+
+### 3.3.3 `ThreadLocal`
+
+* Stores values for each thread. Can be thought of as `Map<Thread, Value>`.
+* *May* be useful when a frequently used operation uses a temporary buffer that is expensive to create on each invocation.
+* Useful for porting single threaded applications to a multithreaded environment.
+* `ThreadLocal` is easy to abuse as a type of global variable and can introduce hidden coupling that can harm reusability.
 
 
 
