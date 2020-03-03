@@ -34,3 +34,9 @@ variable to a program, you must `export` it.
 * The number that appears next to a `man` page name is the section. Section 1
 (`man(1)`) is the user commands section. Section 2 (`man(2)`) is the system
 calls section.
+* "Clobber" means to overwrite a file.
+* `&>` redirects both `stdout` and `stdrr`. (`&>word` and `>&word` are the
+same, the first is preferred.)
+* `$$` is a shell variable that evaluates to the current shell’s PID.
+* `CTRL-Z` suspends a process. The `fg` command returns back to the suspended process.
+* `fg` can also be used to return to a program running in the background using `cmd &`.
