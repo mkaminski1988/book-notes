@@ -40,3 +40,24 @@ same, the first is preferred.)
 * `$$` is a shell variable that evaluates to the current shell’s PID.
 * `CTRL-Z` suspends a process. The `fg` command returns back to the suspended process.
 * `fg` can also be used to return to a program running in the background using `cmd &`.
+* File permissions
+    * The file mode contains several parts. Given `-rw-r--r--`:
+        * The first dash (`-`) indicates a file. Directors are denoted with `d`.
+        * The first segment is `rw-`, which is for user permissions.
+        * The second segment is `r--`, which is for group permissions.
+        * The third segment is `r--`, which is for other (or "world") permissions.
+    * Each permission set can contain 4 different representations:
+        * `r` is readable.
+        * `w` is writable.
+        * `x` is executable.
+        * `-` means nothing (just a placeholder).
+    * You can set group and other permissions with `chmod`.
+        * `chmod g+r file` adds group read permisison.
+        * `chmod o+r file` adds world read permisison.
+        * `chmod g-r file` removes group read permisison.
+        * `chmod go+r` adds group and world read permission in one shot.
+    * Directories must be set as executable in order to access files within them.
+    * `umask` sets default permissions for any new files created by a user.
+    This is set in one of the startup files. `022` allows all users to see new
+    files.
+
