@@ -60,4 +60,12 @@ same, the first is preferred.)
     * `umask` sets default permissions for any new files created by a user.
     This is set in one of the startup files. `022` allows all users to see new
     files.
-
+* File archiving and compression
+    * `tar [x,c,t]vf file.tar`
+        * `x`: extract, `c`: compress, `t`: display table of contents
+        * `v` vebose
+        * `f` filename (must be followed by filename)
+    * For tar, you can compress/uncompress by using `z` option.
+    * `gzip file`: compress, `gunzip file.gz` uncompress
+    * `*.Z` files were compressed with legacy Unix compression program. gzip 
+    can read them but not create.
