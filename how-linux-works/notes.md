@@ -69,3 +69,17 @@ same, the first is preferred.)
     * `gzip file`: compress, `gunzip file.gz` uncompress
     * `*.Z` files were compressed with legacy Unix compression program. gzip 
     can read them but not create.
+
+## Chapter 3
+
+* Device files are located in `/dev`.
+* Device type can be determined with `ls -l`.
+    * `b`: block - Access data in fixed chunks.
+    * `c`: character - Character streams, can't do random access.
+    * `p`: pipe  - Like character device, but with another process at end of 
+    stream instead of kernel driver.
+    * `s`: socket - Unix domain sockets used for IPC.
+* Not all devices have device files because they may not work with the
+block/character device pattern, such as network cards.
+* The `/sys/devices` device path provides more detailed device information than the
+`/dev` directory.
