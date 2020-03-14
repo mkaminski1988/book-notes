@@ -72,7 +72,9 @@ same, the first is preferred.)
 
 ## Chapter 3
 
-* Device files are located in `/dev`.
+* The udev system enables user-space programs to automatically configure and
+use new devices.
+* `udev` manages device files located in `/dev`.
 * Device type can be determined with `ls -l`.
     * `b`: block - Access data in fixed chunks.
     * `c`: character - Character streams, can't do random access.
@@ -83,3 +85,18 @@ same, the first is preferred.)
 block/character device pattern, such as network cards.
 * The `/sys/devices` device path provides more detailed device information than the
 `/dev` directory.
+* The `dd` command copies data in blocks of fixed size.
+* Linux has two primary display modes: `text mode` and `X Window Server`.
+    * In text mode, you can switch between consoles using `ALT+F#`.
+    * In graphics mode, you can switch between consoles using `CTLR+ALT+F#`.
+    * `/dev/tty*` contains virtual consoles, which are Kernel-emulated terminals.
+    * `/dev/pts/*` contains psuedoterminal devices.
+    * `/dev/tty` is the terminal of the current process.
+* `devtmpfs` is a temporary file system that stores device information at boot
+time and is eventually mounted to `/dev` upon completion. No user-space support
+is required to have a working `/dev` directory during boot time.
+* `udevd` handles all user space events raised when hardware devices are added
+into the system or removed from it.
+* Each device has a major-minor pair. The major number refers to the driver
+(floppy disk, hard drive, etc) and the minor refers to something specific, such
+as the bus the device is connected to.
