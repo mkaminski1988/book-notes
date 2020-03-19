@@ -13,8 +13,8 @@
         * *Stream* - An element-by-element view of the evolution of a dataset over
         time.
     * Streaming systems have historically been considered limited to providing 
-    low-latency, inaccurate, or speculative results, typically coupled with a
-    batch system for eventually correct results.
+        low-latency, inaccurate, or speculative results, typically coupled with a
+        batch system for eventually correct results.
         * This is the foundation of *Lambda Architectures*.
         * Lambda Architectures require maintaing two parallel systems: one
         that delivers quick results and one that delivers correct results.
@@ -73,7 +73,8 @@
                 windows overlap. If periods equal length, fixed windows.)
             * *Sessions*
                 * Common for analyzing user behavior over time.
-                * Lengths cannot be defined beforehand, they are dependent on the data involved.
+                * Lengths cannot be defined beforehand, they are dependent on
+                the data involved.
         * *Windowing By Processing Time*
             * Create windows based upon when messages are processed.
             * Advantages: simple, "completeness" is straightforward, useful for
@@ -97,6 +98,74 @@
                 to give a estimate of window compleition.
                 * For situations where absolute correctness is required, custom
                 means of closing windows must be implemented.
-                
 
+## Chapter 2 - The What, Where, When, and How of Data Processing
         
+* A *trigger* is a mechanism for declaring when output for a window should
+    be materialized relative to some signal. They make it possible to observe
+    the output of a window multiple times as it evolves.
+    * *Repeated update triggers* generate updated window panes as its
+    contents evolve. These can occur on every new record at regular
+    intervals. Usually used to balance latency and cost. These is the most
+    common type encountered in streaming systems.
+    * *Completeness triggers* materialize a window pane only after it's
+    believed that all the input has been received. These tend to be more
+    batch-oriented. Completeness triggers are driven by watermarks.
+    * Per-record triggering is ideal for use cases where the output stream is
+    directed at a table that can be polled for updates. These can be chatty. To
+    mitigate chattiness, you can implement a processing-time delay.
+    * The *aligned delay* approach is more predictable, but results in
+    bursty workloads that require greater provisioning.
+    * The *unaligned delay* approach spreads the load more evenly across time,
+    but with less predictable latency.
+    * Triggers are OK for eventual consistency. They are problematic with
+    varying levels of skew. It makes it more difficult to determinate if
+    output is accurate at any given point.
+* A *watermark* is a notion of input completeness with respect to event
+    times. A watermark with value `X` means that all input data with times less
+    than `X` have been observed.They are the way the system measured progress and
+    completeness relative to event time.
+    * *Perfect watermarks* are based on perfect knowledge of input data. In
+    this case, late data is impossible.
+    * *Heuristic watermarks* use whatever information it get from the input
+    data to provide an estimate of progress. These generally work well but can
+    lead to ate data.
+    * Shortcomings of watermarks:
+        * Too slow: A watermark may be delayed due to known unprocessed data.
+        Occurs when output depends on watermark avancement.
+        * Too fast: When data with event times before the water mark arrive
+        some time later.
+    * The shortcomings of these individual types of watermarks can be overcome
+        by using both types at the same time. Enter the *early/on-time/late trigger*,
+        which partitions the panes into three categories:
+        * > 0 *early panes*, which generate speculative results early on as the
+        data arrive. This compensates for too slow watermarking.
+        * At most one *on-time* pane, which results from watermark
+        completions. This makes an assertion that the system believes it's
+        received all input. Helps us reason about missing data.
+        * > 0 *late panes*, which account for late data. This compensates for
+        watermarks being too fast.
+* *Garbage collection* is necessary for long-lived, out-of-order streamprocessing.
+    * It's not practical to keep all persistent data from an unbounded data
+    source.
+    * It's necessary to place a *horizon* (or *bound*) on how late any given
+    record may be relative to the watermark. Any date that exceeds the lateness
+    horizon may be dropped without processing.
+    * The horizon should be based on the event-time domain rather than
+    processing-time domain. This ties garbage collection to progress on the
+    pipeline. If tied to processing-time, data would be unnecessarily garbage
+    collected if the system were to go down.
+* An *accumulation mode* specifies the relationship between multiple results
+    that are observed for the same window. What do we do with the existing data
+    for each successive update of the window?
+    * *Discarding* - Each time a pane is materialized, discard the stored
+    state. Useful for replacing previous results.
+    * *Accumulating* - Each time a pane is materialized, retain stored state and
+    accumulate future inputs into existing state. Useful for overwriting
+    previous results.
+    * Accumulating and Retracting* - Same as accumulating mode, but with an
+    independent retracting of the previous pane. "I previously told you the
+    result was X. Get rid of X and replace it with Y". This is important for
+    cases where downstream consumers are regrouping data by a different
+    dimension. The retraction helps them correctly update their groupings.
+
