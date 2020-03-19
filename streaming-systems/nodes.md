@@ -23,7 +23,7 @@
         * The idea is to use a replayable system (such as Kafka) as part of a
         single pipeline to achieve the task at hand.
     * To design a streaming system that can surpass Lamba Architecture, you
-    need two things:
+        need two things:
         * *Correctness*, which requires consistent storage.
         * *Tools for reasoning about time*, which will be discussed later in
         book.
@@ -169,3 +169,70 @@
     cases where downstream consumers are regrouping data by a different
     dimension. The retraction helps them correctly update their groupings.
 
+## Chapter 3 - Watermarks
+
+* Definition
+    * With processing unbounded data, we want to solve problem of knowing when
+    it is safe to call an event-time window closed, meaning that we don't expect
+    to receive more data once the window closes.
+    * A naive approach is to base windows on processing time, which fails when
+    any hiccups or spikes in the pipeline cause us to incorrectly put messages
+    into windows.
+    * We can make one fundamental assumption about streaming data: each message
+    has an associated logical event timestamp.
+    * Def: The *watermark* is a monotonically increasing timestamp of the
+        oldest work not yet completed. There are two fundamental properties of
+        watermarks that make them useful:
+        * *Completeness* - If the watermark has advanced past a timestamp `T`,
+        no more processing will happen for on-time events at or before `T`. We
+        can therefore materialize any messages for messages at or before `T`.
+        * *Visibility* - The watermark stalls if a message gets stuck in the
+        pipeline. We can debug the source of the problem by debugging the
+        message that is preventing the watermark from advancing.
+* Source Watermark Creation
+    * In order to establish a watermark, we must assign a timestamp to every
+    message entering the pipeline.
+    * Once a watermark is created as perfect or heuristic, it remains so for
+    the remainder of the pipeline.
+    * Perfect Watermark Creation
+        * Perfect watermarks are a strict guarantee that no late messages will
+        occur.
+        * Can be created when the source assigns ingress times as event times
+        for data entering the system. Timestamps must come from a single,
+        monotonically-increasing source. A downside to this approach is that it
+        does not capture useful event processing times.
+        * Can be created from static sets of time-ordered logs, like Kafka.
+        This is more useful than ingress timestamping because the watermark
+        track meaningful event times.
+    * Heuristic Watermark Creation
+        * An *estimate* that no data with event times less than the watermark
+        will be seen again.
+        * The better the heuristic watermark, the less late data.
+        * This approach scales better.
+        * Can be achieved by tracking minimum event times of unprocessed data,
+        monitoring growth rates, and utilizing external information like
+        network topology.
+* Watermark Propagation
+    * Most real-work pipelines consist of multiple stages. Each stage tracks
+    its own watermark.
+    * *Input watermarks* captures the progress for everything upstream of a
+    stage. For sources, the input watermark is for source data. For non-source
+    stages, the input watermark is defined as the minimm of the output
+    watermarks of all upstream sources and stages.
+    * *Output watermarks* capture the progress of a stage, and represents the
+    minimum of the stage's input watermark and the event times of all nonlate
+    active messages within the stage.
+    * Subtracting input from output watermarks givesn the amount of event-time
+    legacy (lag) introduced by the stage.
+* *Percentile watermarks* are guarantees to have processed `X%` of all events
+    with earlier timestamps.
+    * This works in cases where "mostly correct" is sufficient.
+    * The watermark advances more quickly and is not delayed by outliers, which
+    lowers processing time.
+* Processing-Time Watermarks
+    * By only examining event-time watermark, you cannot distinguish between
+    old data and a delayed system.
+    * Processing-time watermarks provides a notion of processing delay separate
+    from data delay.
+    * An increase in processing time delay can be caused by networking issues,
+    etc.
