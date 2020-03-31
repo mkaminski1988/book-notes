@@ -232,7 +232,76 @@
 * Processing-Time Watermarks
     * By only examining event-time watermark, you cannot distinguish between
     old data and a delayed system.
-    * Processing-time watermarks provides a notion of processing delay separate
+    * Processing-time watermarks provide a notion of processing delay separate
     from data delay.
     * An increase in processing time delay can be caused by networking issues,
     etc.
+
+## Chapter 4 - Advanced Windowing
+
+* When/Where: Processing-Time Windows
+    * Use processing-time monitoring is appropriate for monitoring data as it's
+        observed, such as monitoring web traffic. It's not appropriate for use
+        cases for which the time events happened is important.
+    * When working with a model where windowing is strictly event-time based,
+        there are two ways to achieve processing-time windowing:
+        * Triggers - Use a global event-time window.
+        * Ingress Time - As data arrive, their event times are updated to match
+            their ingress time.
+    * The downside of processing-time windows is that the contents of the
+        windows change when the observation order of the inputs changes.
+        * Each section below illustrates two graphs with the same events. Both
+            graphs process the same event at different times.
+        * Event-Time Windowing
+            * The results are the same even when observation order differs.
+            * See [http://streamingsystems.net/fig/4-2](http://streamingsystems.net/fig/4-2).
+        * Process-Time Windowing via Triggers
+            * Observation time makes results different.
+            * See [http://streamingsystems.net/fig/4-3](http://streamingsystems.net/fig/4-3).
+        * Process-Time Windowing via Ingress Time
+            * Observation time makes results different.
+            * See [http://streamingsystems.net/fig/4-4](http://streamingsystems.net/fig/4-4).
+    * tl;dr: Event-time windowing is order-agnostic, processing-time windowing
+        is not.
+* Where: Session Windows
+    * Sessions are a type of window that capture a period of activity in data
+        followed by a period of inactivity.
+    * Useful for measuring user activitiy.
+    * Session windows are an example of data-driven window: the location and
+        window sizes are a consequence of the input data themselves.
+    * They are also an example of an unaligned window: the window does not
+        apply uniformly across data (contrasts with fixed and sliding windows
+        which apply uniformly across data).
+    * Sometimes the windowing key is known in advance (i.e. a session ID).
+        Other times, the session window is created created out of set of
+        smaller, overlapping windows containing a single record.
+* Where: Custom Windowing
+    * Most systems don't support custom windowing, except Beam. This section
+        just focuses on Beam.
+    * A custom windowing strategy consists of two things: window assignment and
+        window merging.
+    * Variations on Fixed Windows
+        * Fixed Windows
+            * Elements are placed into the appropriate fixed-window based on
+                its timestamp and the window size and offset parameters.
+        * Unaligned fixed windows
+            * Aligned windows all close at the same time, which causes CPU
+                usage bursts.
+            * Unaligned windows spread window completion out over time at the
+                expense of not being able to compare data across windows.
+        * Per-element/key fixed windows
+            * Element data determines window size.
+            * Useful when you want to support arbitrary window sizes.
+            * Example given is a Cloud Dataflow customer that generates
+                analytics data for its customers. Each customer is allowed to
+                configure the window size over which it aggregates metrics.
+    * Variations on Session Windows
+        * Implementation
+            * Assignment: Each element is placed into a proto-session window
+                that starts at the element's timestamp and extends for the gap
+                duration.
+            * Merging: At grouping time, all eligible windows are sorted.
+                Overlapping windows are merged together.
+        * Bounded Sessions
+            * Sessions that are not allowed to grow beyond a certain size.
+            
