@@ -304,4 +304,95 @@
                 Overlapping windows are merged together.
         * Bounded Sessions
             * Sessions that are not allowed to grow beyond a certain size.
-            
+
+## Chapter 5 - Exactly-Once and Side Effects
+
+* *Exactly-once processing* means ensuring that every record is processed
+    exactly once.
+* This chapter uses Cloud Datastore as an example.
+* Accuracy Versus Completeness
+    * Dataflow does not guarantee that custom code is run only once per record.
+        Many invocations can happen, and only one will "win."
+    * Nonidempotent side effects are not guaranteed to execute exactly once.
+        Strategies for dealing with this issue is discussed later on.
+* Problem Definition
+    * Dataflow workers shuffle data between themselves via RPC.
+    * This chapter focuses on three things:
+        * *Shuffle*: How Dataflow guarantees that every record is shuffled
+            exactly once.
+        * *Sources*: How Dataflow guarnatees that every source record is
+            processed exactly once.
+        * *Sinks*: How Datflow guarantees that every sink produces accurate
+            output.
+* Ensuring Exactly Once in Shuffle
+    * RPCs can fail for many reasons: network interrupts, timeouts, etc.
+    * Dataflow guarantees that records are not lost by employing *upstream
+        backup*, which means that the sender retries RPCs until it receives
+        positive acknowledgement of receipt, even if the sender crashes. This
+        guarantees *exactly once* delivery.
+    * RPC calls may succeed even if they report failures. Therefore we need to
+        contend with duplicates.
+    * To avoid duplicates, Dataflow tags every message sent with a unique ID.
+        Each receiver keeps a list of all unique IDs it has seen, discarding
+        incoming messages with unique IDs that are in the list.
+* Addressing Determinism
+    * User-supplied processing functions may nondeterministic. A function may
+        execute twice on the same input record (due to retry), yet produce
+        different output on retry.
+    * Dataflow solves this problem by using checkpointing to make
+        nondeterministic processing effectively deterministic. Output from a
+        transform is saved to stable storage before being delivered to the next
+        stage. Upon retry, the same output stored at the check point is resent
+        without reinvoking the callback.
+* Performance
+    * Each receiver maintains a catalog of record IDs. For every record,
+        Dataflow checks to see if the ID is in the catalog to determine if the
+        record is a duplicate. Dataflow implements two techniques to reduce the
+        I/O overhead of duplicate processing: *graph optimization* and *Bloom
+        filters*.
+* Graph Optimization
+    * This is an optimization run on a pipeline before execution.
+    * *Fusion* is a optimization that fuses many logical steps into a single
+        execution stage. All steps are run in the same process-unit, which
+        reduces the amount of data transfer needed to store exactly-once data
+        for each step.
+    * Refresher: 
+        * *Commutative property* states that you can process numbers in any
+            order and arrive at the same answer.
+        * *Associative propertY* states you can group numbers in any
+            combination and arrive at the same answer.
+    * Dataflow optimizes associative and commutative `Combine` operations (such
+        as `count` and `sum`) by performing partial combining locally before
+        sending the data to the main grouping operation. This can reduce the
+        number of messages for delivery.
+* Bloom Filters
+    * Bloom filters are compact data structures that allow for quick membership
+        checks. They can return false positives but never false negatives.
+    * Dataflow uses Bloom Filters to optimize the duplicate record check. When
+        a new message arrives, Dataflow looks up its record ID in the bloom
+        filter. If the bloom filter returns false, the record is not a
+        duplicate, and the expensive membership check can be skipped, saving
+        I/O. If it returns true, it must do the lookup, because the record may
+        or may not be a duplicate.
+    * This technique works best in a healthy pipeline, where most arriving
+        records are not duplicates.
+    * Dataflow limits bloom filter size by creating a seaprate one for every
+        10-minute range.
+* Garbage Collection
+    * Every Dataflow worker persistently stores a catalog of unique record IDs
+        it has seen. Grabage collection prevents old records from filling up
+        storage.
+    * Dataflow calculates a garbage collection watermark based upon the
+        timestamp used for bucketing exactly-once bloom filters. This watermark
+        is based on the amount of physical time spent waiting at a given stage,
+        and provides insight into which parts of the pipeline are slow.
+    * *Network remnants* are messages that get stuck for an indefinite period 
+        of time in the network and suddenly appear. If a message appears that
+        is older than the watermark, we know that the remnant message is a
+        duplicate, because the garbage collection watermark only advances when
+        all delivers have been acknowledged.
+* Exactly Once in Sources
+    * Some data sources are *deterministic*, meaning the input will be the same
+        on each retry.
+    * Some data sources are *nondeterministic*. These sources a required to
+        provide a way to inform the system what the record IDs should be.
