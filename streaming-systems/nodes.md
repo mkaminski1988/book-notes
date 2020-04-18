@@ -12,7 +12,7 @@
         * *Table* - A holistic view of a dataset at a specific point in time.
         * *Stream* - An element-by-element view of the evolution of a dataset over
         time.
-    * Streaming systems have historically been considered limited to providing 
+    * Streaming systems have historically been considered limited to providing
         low-latency, inaccurate, or speculative results, typically coupled with a
         batch system for eventually correct results.
         * This is the foundation of *Lambda Architectures*.
@@ -396,3 +396,100 @@
         on each retry.
     * Some data sources are *nondeterministic*. These sources a required to
         provide a way to inform the system what the record IDs should be.
+
+## Chapter 6 - Streams and Tables
+
+* Streams-and-Table Basics Or: a Special Theory of Stream and Table Relativity
+    * The data structure underlying most databases is an append-only log, which
+        is effectively a stream.
+    * To create a table from a stream, you serially apply updates to a table.
+    * To create a stream from a table, you record a changelog of the table.
+    * SQL materialized views are created from the changelog of an underlying
+        source table.
+    * Streams → tables: The aggregation of a stream of updates over time yield
+         a table.
+    * Tables → streams: The observation of changes to a table over time yields
+        a stream.
+* Toward a General Theory of Stream and Table Relativity
+    * Tables are data at rest. They are essentially a snapshot of data in time.
+    * Streams are data in motion. They capture of the evolution of data over
+        time.
+* **Batch Processing Versus Streams and Tables**
+    * **A Streams and Tables Analysis of MapReduce**
+        * MapReduce is broken down into these steps:
+            * *MapRead*: Consumes the input data and preprocesses them into
+                standard key/value mapping.
+            * *Map*: Repeatedly consumes a single key/value pair from the
+                prepocessed input and outputs more key/value pairs.
+            * *MapWrite*: Writes key/value pairs to persistent storage.
+            * *ReduceRead*: Consumes shuffled data from previous step and
+                converts them into a standard key/value-list form for
+                reduction.
+            * *Reduce*: Repeatedly consumes a single key and its value-list of
+                records and outputs more records.
+            * *ReduceWrite*: Writes output from previous step to output
+                datastore.
+        * The *MapRead* and *ReduceWrite* are commonly referred to as sources
+            and sinks.
+        * How does batch processing fit into stream/table theory? Map/Reduce is
+            a series of stream and table creation.
+            * [TABLE] → *MapRead* → [STREAM] → *Map* → [STREAM] → *MapWrite* →
+                [TABLE] → *ReduceRead* → [STREAM] → *Reduce* → [STREAM] →
+                *ReduceWrite* → [TABLE]
+        * Streams work with bounded data (typically considered batch data) just
+            as they do with unbounded data.
+
+* *What, Where, When, and How* in a Streams and Tables World
+    * *What*: Transformations
+        * There are two types of *what* stream/table theory transformations:
+            * *Nongrouping*: Transforming a stream of records and produce a
+                stream of transformed records.
+            * *Grouping*: Transforming a stream of records and grouping them
+                together in some way, thereby forming a table.
+        * If the grouping operation is the final stage in a pipeline, it may
+            make sense to export the table directly. Kafka and Flink provide a
+            way to read the table data directly instead of having to
+            rematerialize them somewhere else.
+    * *Where*: Windowing
+        * There are two aspects of windowing that interact with stream/table
+            theory:
+            * *Window assignment*: Placing a record into one or more windows.
+                When a record is placed into a window, the definition of the
+                window is combined with the record's user-assigned key, which
+                creates an implicit composite key used at groping time.
+            * *Window Merging*: Logic that makes dynamic, data-driven types of
+                windows, such as sessions, possible.
+    * *When*: Triggers
+        * Grouping means stream-to-table conversion.
+        * Triggers are a complement to grouping. They are an "ungrouping"
+            operation that drive table-to-stream conversion.
+        * Triggers are special procedures applied to a table that allow for
+            data within that table to be materialized in response to relevant
+            events.
+        * The trigger operation in streams/table theory is similar to classic
+            database triggers. A trigger is in effect code that is evaluated
+            for every row in the state table as time progresses. When the
+            trigger fires, it takes the corresponding data that are currently
+            at rest in the talble and puts them into motion, yielding a new
+            stream.
+        * The main semantic difference between batch and streaming systems is
+            the ability to trigger tables incrementally. It's not really a
+            semantic difference, but more of a latency/throughput tradeoff.
+        * There's not much difference between batch and streaming systems
+            except for an efficiency delta (in favor of batch) and a natural
+            ability to deal with unbounded data (in favor of streaming).
+        * Apache Beam is a system that provides the best of both worlds: one
+            which provides the ability to handle unbounded data naturally but
+            can also balance the tensions between latency, throughput, and cost.
+    * *How*: Accumulation
+        * Accumulation modes in the streams/tables model:
+            * *Discarding mode*: Requires the system to throw away the previous
+                value for the window when triggering or keep around a copy of
+                the previous value and compute the delta the next time the
+                window triggers.
+            * *Accumulating mode*: Requires no additional work, the current
+                value for the window in the table at triggering time is what is
+                emitted.
+            * *Accumulating and retracting mode*: Requires keeping around
+                copies of all previously triggered (but not yet retracted)
+                values for the window.
