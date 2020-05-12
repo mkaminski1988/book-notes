@@ -493,3 +493,69 @@
             * *Accumulating and retracting mode*: Requires keeping around
                 copies of all previously triggered (but not yet retracted)
                 values for the window.
+
+## Chapter 7 - The Practicalities of Persistent State
+
+* **The Inevitability of Failure**
+    * Pipelines running on unbounded data are meant to run forever, which is a
+        difficult SLO to achieve. Service interruptions are inevitabile.
+    * Persistent state helps ensure that long-running pipelines can resume from
+        where they left off after a failure.
+* **Correctness and Efficiency**
+    * Persistent state provides a *basis for correctness* in light of
+        epehemeral inputs. Processing intermediate data can continue to happen
+        even after the input source is gone.
+    * Persistent state provides a way to *minimize work duplicated and data
+        persisted*. Any work that wasn't checkpointed (saved) in a pipeline
+        must be re-done after a failure. Checkpointing progress in persistent
+        state can help save on time and cost of reprocessing after failure. The
+        amount of data persisted can be lowered by calcualting some smaller,
+        intermediate form of the input data and persisting it (such as total
+        sum and count).
+* **Implicit State**
+    * We must make tradeoffs between persisting everything (good for
+        consistency, bad for efficiency) and never pesisting anything (bad for
+        consistency, good for efficiency).
+    * **Raw Grouping**
+        * Any time a new element arrives in the group, append it to the list of
+            elements seen in the group. (This is a always-persist-everything
+            end of the spectrum.)
+        * Disadvantages
+            * We're storing a lot of data.
+            * Duplicate effort in the case of multiple trigger firings.
+            * We must buffer up raw inputs to grouping operation before
+                processing the group as a whole, so there's no way to partially
+                process the data.
+    * **Incremental Combining**
+        * A form of automatic state built upon a user-defined associative and
+            commutative combining operator.
+        * Advtangages of aggregatations:
+            * Captures partial progress, which is smaller than the input size.
+            * Incremenatal aggregations are indifferent to ordering across two
+                dimensions:
+                * *Individual elements*: (commutativity) `COMBINE(a, b) == COMBINE(b, a)`
+                * *Groupings of elements*: (associativity) `COMBINE(COMBINE(a, b), c) == COMBINE(a, COMBINE(b, c))`
+            * This leads to less buffering (we can compute the results as they
+                arrive) and increased parallelization (we're free to
+                arbitrarily distibute computation across a multiple machines.).
+        * Disadvantage: the grouping operation must fit within a restricted
+            structure, which is fine for sums, means, etc. Many real-world
+            cases require a more general approach that allows precise control
+            over trade-offs of complexity and efficiency.
+* **Generalized State**
+    * The implicit state aproaches are inflexible. To support a more
+        generalized approach to streaming persistent state, we need flexibility
+        in three dimensions:
+        * **Data Structures**: The ability to structure data we read and write
+            in ways that are most appropriate to the task at hand. Raw grouping
+            only provides an appendable list, incremental aggregation only a
+            single value.
+        * **Write and Read Granularity**: The ability to tailor the amount and
+            type of data written or read at any given time for optimal
+            efficiency.
+        * **Scheduling of Processing**: The ability to bind the time at which
+            specific types of processing occur to the progress of time in
+            either event-time or processing time.
+    * The chapter continues by explaining how Apache Beam handles generalized
+        state and then details a case study about advertising conversation
+        attribution.
