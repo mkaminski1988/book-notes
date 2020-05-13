@@ -559,3 +559,38 @@
     * The chapter continues by explaining how Apache Beam handles generalized
         state and then details a case study about advertising conversation
         attribution.
+
+## Chapter 8 - Streaming SQL
+
+> This chapter discusses a hypothetical Streaming SQL implementation. There's
+not a lot of practical knowledge to be gained from this chapter. This section
+will only contain notes on some high-level concepts.
+
+* **Relational Algebra**
+    * Relational algebra is a mathematical way of describing relationships
+        between data that consist of named, typed tuples.
+    * The *closure property* states that applying any operator from the
+        relational algebra to any valid relation always yields another
+        relation. Basically, applying any operator on a table creates another
+        table.
+    * Existing streaming SQL implementations fail to support the closure
+        property. The author argues that, in order for streaming SQL to gain
+        mainstream adoption, an implementation must cleanly support the closure
+        property.
+* **Time-Varying Relations**
+    * In order to integrate streaming into SQL, relations must be extended to
+        represent data *over time* rather than a set of data at a *specific
+        point* in time.
+    * Traditionally, SQL relations are 2-dimensional, consisting of columns in
+        the x-axis and rows of records in the y-axis. Streaming SQL would
+        support a z-axis, a third dimension that tracks snapshots of data over
+        time. Time-varying relations are a sequence of classic relations that
+        each exist independently within their own disjointed (but adjacent)
+        time ranges.
+    * Time-varying relations have two important properties:
+        * The full set of operators from classic relational algebra must remain
+            valid when applied to time-varying relations.
+        * The closure property of relational algebra remains intact when
+            applied to time-varying relations.
+
+
