@@ -593,4 +593,42 @@ will only contain notes on some high-level concepts.
         * The closure property of relational algebra remains intact when
             applied to time-varying relations.
 
+## Chapter 9 - Streaming Joins
 
+> This chapter discusses a hypothetical Streaming SQL implementation. There's
+not a lot of practical knowledge to be gained from this chapter. This section
+will only contain notes on some high-level concepts.
+
+* **All Your Joins Are Belong to Streaming**
+    * Joins group data, grouping operations always consume a stream to yield a
+        table, therefore all joins are streaming joins.
+* **Unwindowed Joins**
+    * Because joins are simply another type of grouping operation, joins do not
+        require windows. In order to consue a joined table as a stream, we only
+        need to apply an ungrouping (or *trigger*) operation that doesn't block
+        until it's seen all the data.
+        * You can window the join into a nonglobal window and use a watermark trigger.
+        * ... or you could trigger on every record....
+        * ... or you could periodically trigger as time advances.
+    * There's only really one type of join at its core: the `FULL OUTER` join.
+        All other types (`LEFT/RIGHT OUTER1`, `INNER`, etc.) are a subset of
+        `FULL OUTER`.
+    * `FULL OUTER`: The full list of rows in both datasets, with rows in the
+        two datasets that share the same join key combined together as well as
+        unmatched rows for either side.
+    * `LEFT OUTER`: The same as `FULL OUTER` with any unjoined rows from the
+        right dataset removed.
+    * `RIGHT OTUER`: The same as `FULL OUTER` with any unjoined rows from the
+        left dataset removed.
+    * `INNER`: The intersection of `LEFT OUTER` and `RIGHT OUTER`.
+    * `ANTI`: The obverse of `INNER`. They contain all of the unjoined rows.
+    * `SEMI`: Returns a row from the left table if there is at least one
+        matching row in the other table. Rows in the left table will be
+        returned at most once.
+        * In SQL, this is usually achieved with a `WHERE... IN...` construct.
+* **Windowed Joins**
+    * Two reasons for windowing joins:
+        1. To partition time in some meaningful way (such as currency
+            conversion).
+        2. To provide a meaningful reference point for timing out a join (in
+            unbounded data situations).
