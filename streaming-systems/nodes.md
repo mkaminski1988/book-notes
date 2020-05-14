@@ -1,5 +1,9 @@
 # Streaming Systems
 
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/2894330/81882602-24346000-9561-11ea-9446-9828470620f5.jpg">
+</p>
+
 ## Chapter 1 - Streaming 101
 
 * Terminology: What is Streaming?
