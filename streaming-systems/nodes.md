@@ -632,3 +632,51 @@ will only contain notes on some high-level concepts.
             conversion).
         2. To provide a meaningful reference point for timing out a join (in
             unbounded data situations).
+
+## Chapter 10 - The Evolution of Large-Scale Data Processing
+
+* **MapReduce**
+    * tl;dr: scalability and simplicity
+    * Solved common data processing challenges, including scalability and 
+        fault-tolerance.
+    * Provides a simple data-processing API centered around two operations: map
+        and reduce.
+    * [MapReduce paper](https://static.googleusercontent.com/media/research.google.com/en//archive/mapreduce-osdi04.pdf)
+* **Hadoop**
+    * tl;dr: open source ecosystem
+    * Open source system based on MapReduce paper.
+    * [The history of Hadoop](https://medium.com/@markobonaci/the-history-of-hadoop-68984a11704)
+* **Flume**
+    * tl;dr: pipelines, organization
+    * A successor to MapReduce that helps orchestrate data processing pipelines
+        via a high-level API.
+* **Storm**
+    * tl;dr: low latency with weak consistency
+    * First streaming system to see broad adoption across the industry.
+    * Brought about Lambda Architecture. ([How to beat the CAP theorem](http://nathanmarz.com/blog/how-to-beat-the-cap-theorem.html))
+    * [A critique of the CAP theorem](https://martin.kleppmann.com/2015/09/17/critique-of-the-cap-theorem.html)
+* **Spark**
+    * tl;dr: strong consistency
+    * Powered by a strongly consistent batch engine under the covers (allows to
+        you to ditch Lambda Architecture).
+* **MillWheel**
+    * tl;dr: out-of-order processing
+    * [MillWheel: Fault-Tolerant Stream Processing at Internet Scale](https://research.google/pubs/pub41378/)
+* **Kafka**
+    * tl;dr: durable streams, streams and tables
+    * [Making Sense of Stream Processing](https://www.confluent.io/blog/making-sense-of-stream-processing/)
+    * [Introducing Kafka Streams: Stream Processing Made Simple](https://www.confluent.io/blog/introducing-kafka-streams-stream-processing-made-simple/)
+* **Cloud Dataflow**
+    * tl;dr: unified batch plus streaming
+* **Flink**
+    * tl;dr: open source stream processing innovator
+* **Beam**
+    * tl;dr: portability
+    * Apache Beam is a programming model, portability layer, and API.
+    * Beam is to stream processing as SQL is to databases.
+    * Composed of a number of components:
+        * A unified batch plus streaming programming model.
+        * A set of SDKs (Java, Python, Go)
+        * A set of DSLs that concentrate of certain pieces of the model.
+        * A set of runners that execute Beam pipelines (Apex, Flink, Spark,
+            Google Cloud Dataflow).
