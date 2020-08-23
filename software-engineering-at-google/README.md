@@ -61,6 +61,36 @@ time to solve important problems.
 - Google prevents developers from using bleeding edge language constructs until they can be properly evaluated.
 - While the style guides are fairly rigid, they do allow for exceptions and a degree of pragmatism.
 
+## Chapter 9 - Code Review
+
+- Essentially every change is reviewed before being committed at Google.
+- Three aspects of review that require approval for a change:
+    - Correctness and comprehension check, often from team member.
+    - Approval from one of the code owners, usually a tech lead or another engineer that is an expert of the codebase.
+    - Approval with someone with language "readability", someone who is certified in Google's best practices for the language the change is written in.
+- Benefits of code review:
+    - Checks code correctness.
+    - Makes sure change is comprehensible to other engineers.
+    - Enforces consistency across the codebase.
+    - Promotes team ownership.
+    - Promotes knowledge sharing.
+    - Provides a historical record of the change.
+- Best practices
+    - Be polite and professional. Keep all feedback and criticism professional.
+        - Reviewers should defer to authors and onlypoint out alternatives if the author's approach is deficient.
+        - Feedback should be prompt (returned within 24 working hours).
+        - Understand that the code is not "yours" but the team's.
+    - Write small change, generally 200 lines of code.
+    - Write good change descriptions.
+        - The summary should go in the first line.
+        - The following description should detail what's being changed and *why*.
+    - Keep reviewers to a minimum.
+        - Google has determined that there are diminishing returns with more than 1 reviewer.
+        - The most important LGTM is the first one.
+- Automate where possivle with static analysis, tests, linters, and formatters.
+- Code reviews for greenfield projects require a design review.
+- New projects should contain an `OWNERS` file.
+
 ## Chapter 10 - Documentation
 
 - Documentation helps with questions like:
