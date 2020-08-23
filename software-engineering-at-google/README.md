@@ -139,3 +139,47 @@ are exploring/new to a topic). For seekers, documentation should be consistency.
     - **When** was the document created, updated, or reviewed?
     - **Where** does the doc live? 
     - **Why** does the doc exist? Summarize what you expect someone to take away from the document after reading it.
+
+## Chapter 11 - Testing Overview
+
+- Early Google did not have institutional adoption of engineer-driven testing. This chapter tells the story of Google 
+Web Server. This system started out with no automated testing and continued that way until 80% of production pushes
+contained bugs that needed to be rolled back. The tech lead introduced engineer-driven, automated testing, and the
+number of emergency pushes dropped by half within the first year even though the number of changes to the project
+increased every quarter.
+- After experiencing pain with slow, unreliable system-scale tests, Google now prefers "small" tests. Tests are sized 
+    according to characteristics other than the number of lines of code.
+    - *Small*
+        - Runs on a single process.
+        - Can't sleep, perform I/O operations, or make any blocking calls.
+        - These restrictions ensure that tests are fast and deterministic.
+    - *Medium*
+        - Can span multiple processes, use threads, make blocking calls, and
+            use the localhost network.
+        - Can run a database instance or implement UI tests.
+    - *Large*
+        - For testing across multiple machines.
+        - Can run without `localhost` network restriction.
+        - Typically run at building time/during release process in order to not slow down workflow.
+        - Reserved for validating system configurations.
+- The size of the tests are actually enforced by tooling.
+- Google aims for 80% of tests to be narrow in scope, 15% medium, and 5% large.
+- Two anti-patterns: "ice cream cone" and "hourglass".
+    - *Ice cream cone*: Heavy on manual testing and large tess.
+    - *Hourglass*: Heavy on unit and end-to-end tests, light on integration tests.
+- Google discourages the code coverage metrics.
+    - Only assumes the code was invoked, not that the code did anything useful.
+    - Becomes its own goal. If code coverage requirement is 80%, why go above and beyond 80%?
+    - A better way to think about test quality is to think about the behaviors that are tested. 
+        - Can me make changes without breaking things for the customer?
+        - Can we catch breaking changes in dependencies?
+        - Are the tests stable and reliable?
+- Google didn't get serious about testing until 2005-2006. Now the company offers testing classes during orientation test
+    certification.
+- ["Testing on the Toilet"](https://testing.googleblog.com/2007/01/introducing-testing-on-toilet.html) (a flyer distributed
+in toilet stalls across the company) raised awareness of testing best practices.
+- Automated Testing is not the best for all testing tasks, such as rating search result quality, audio/video quality,
+    and security.
+- "Exploratory Testing" is a creative type of testing used when problems are unknown from the start.
+
+
