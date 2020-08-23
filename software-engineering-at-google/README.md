@@ -22,7 +22,6 @@ single expert on a particular subject may be put into a lurch when that particul
 the team.Having a single expert on a particular subject.
 - "Tribal knowledge exists in the gap between what individual team members know and what is documented."
 
-
 ## Chapter 6 - Leading at Scale
 
 - "The three Always of leadership": Always Be Deciding, Always Be Leaving, Always Be Scaling.
@@ -182,4 +181,59 @@ in toilet stalls across the company) raised awareness of testing best practices.
     and security.
 - "Exploratory Testing" is a creative type of testing used when problems are unknown from the start.
 
+## Chapter 12 - Unit Testing
 
+- The ideal test is unchanging: after it's written, a test never changes unless the requirements change.
+- The test should remain the same despite refactorings, bug fixes, and new features.
+    - Test via public APIs.
+    - Test State, not Interactions.
+        ```java
+        // Brittle
+        @Test
+        ublic void shouldWriteToDatabase() {
+         accounts.createUser("foobar");
+         verify(database).put("foobar");
+        }
+
+        // Robust, tests using state
+        @Test
+        public void shouldCreateUsers() {
+          accounts.createUser("foobar");
+          assertThat(accounts.getUser("foobar")).isNotNull();
+        }
+        ```
+- In order to test against state, we must use real objects instead of mock objects. I'm skeptical of this advice, but will learn more in chapter 13.
+- Make sure tests are **complete**, meaning all relevant informaton necessary for the reader to understand the method is in the test body.
+- Also make sure the tests are **concise**, meaning the tests do not contain unnecessary, distracting information.
+- Test behaviors, not methods. A behavior is any guarantee the system makes for a given input. We can express behaviors
+    using the words "given" (the setup) "when" (the action taken) and "then" (the result validation). Well-structed
+    tests are organized around these three components.
+    ```java
+    @Test
+    public void transferFundsShouldMoveMoneyBetweenAccounts() {
+      // Given two accounts with initial balances of $150 and $20
+      Account account1 = newAccountWithBalance(usd(150));
+      Account account2 = newAccountWithBalance(usd(20));
+
+      // When transferring $100 from the first to the second account
+      bank.transferFunds(account1, account2, usd(100));
+
+      // Then the new account balances should reflect the transfer
+      assertThat(account1.getBalance()).isEqualTo(usd(50));
+      assertThat(account2.getBalance()).isEqualTo(usd(120));
+    }
+    ```
+- Name tests after behavior being testing (e.g. `shouldNotAllowWithdrawalsWhenBalanceIsEmpty`).
+- Don't put logic in tests, such as operators, loops and conditionals. The chapter gives a confusing example where a
+    test assertion uses a confusingly-concatenated string for its expected input.
+- Wite clear failure messages. Favor 
+    ```java
+    `Expected an account in state CLOSED, but got account: <{name: "my-account", state: "OPEN"}`
+    ```
+    instead of
+    ```java
+    Test failed: account is closed
+    ```
+- The [truth](https://truth.dev/) is a Google assertion framework that helps make clear error messages.
+- Don't be dogmatic about DRY (Don't Repeat Yourself) when it comes to testing, as maintaning DRY can lead to
+    diminished test clarity. Instead focus on DAMP (Descriptive and Maningful Phrases).
