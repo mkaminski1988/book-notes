@@ -4,17 +4,17 @@
 
 - This chapter talks about how domain knowledge is collected and shared throughout Google.
 - There are several problems that can be caused by a lack of knowledge sharing culture:
-    **1. Lack of psychological safety**
+    1. **Lack of psychological safety**
         - People become afraid to take risks and make mistakes.
-    **2. Information islands**
+    2. **Information islands**
         - Knowledge becomes fragmented between developers/teams.
-    **3. Single point of failure (SPOF)**
+    3. **Single point of failure (SPOF)**
         - Only one person has information.
-    **4. All-or-nothing expertise**
+    4. **All-or-nothing expertise**
         - A split in a group of people where one side has all the knowledge and the other side has very little knowledge.
-    **5. Parroting**
+    5. **Parroting**
         - People use knowledge/information without really understanding it.
-    **6. Haunted graveyards**
+    6. **Haunted graveyards**
         - Casebases that people are afraid to touch due to a lack of knowledge.
         - Real world: Ansible Kafka jobs
 - One-on-one knowledge sharing is useful, but it's important to be able to scale up knowledge. A team with only a
