@@ -100,3 +100,74 @@ into the system or removed from it.
 * Each device has a major-minor pair. The major number refers to the driver
 (floppy disk, hard drive, etc) and the minor refers to something specific, such
 as the bus the device is connected to.
+* The SCSI protocol is a big-endian peer-to-peer packet based protocol.
+* SCSI commands can be sent over different kinds of busses, such as SATA, SAS, ATAPI, etc.
+* From Wikipedia: ATA Packet Interface (ATAPI) is a protocol that has been added to Parallel ATA and Serial ATA so that
+a greater variety of devices can be connected to a computer than with the ATA command set alone. It carries SCSI
+commands and responses through the ATA interface. ATAPI devices include CD-ROM and DVD-ROM drives, tape drives,
+magneto-optical drives, and large-capacity floppy drives such as the Zip drive and SuperDisk drive.
+
+## Chapter 4
+
+* Partitions are defined in a partition table. Master Boot Record (MBR) is the traditional type, although a new type
+called Globally Unique Identifier Partition Table (GPT) is starting to gain traction.
+* There are several types of paritioning tools:
+    * **parted**: text-based tool that supported MBR and GPT
+    * **gparted**: gui-based version of parted
+    * **fdisk**: traditional tool that does not support GPT
+    * **gdisk**: version of fdisk that supports GPT but not MBR
+* There are several MBR partition types:
+    * **primary**: a normal subdivision of a disk, normally limited to 4
+    * **logical**: one of the primary partitions that contain extended partitions
+    * **extended**: multiple partitions inside logical partition used by OS
+* `CHS` geometry is an early method for giving addresses to blocks of data: cylinder, head, sector.
+    * **cylinder**: concentric circles on multiple platters that contain data
+    * **head**: reads data from cylinders
+    * **sector**: subdivisions of cylinders
+* **Logical Block Addressing (LBA)** is an hardware scheme for addressing locations on disk by block number.
+* The typical CHS data reported by OS is incorrect. Everything depends on LBA.
+* CHS is still relevant for determing partition boundaries, although LBA is used to determine the precise locations.
+* For SSDs, you want to make sure partitions are correctly aligned on a 4096-byte boundaries.
+* Filesystems are basically databases for transforming block devices into a sophisticated file hierarchy.
+* Because filesystem names are dependent on the order in which they are discovered by the kernel, you can depend on
+UUIDs to consistently identify filesystems. UUIDs are the preferred method for mounting devices in `/mnt/fstab`.
+* File system tables:
+    * `fstab` contains a list of devices to mount at boot time
+    * `mtab` contains a list of devices currently mounted
+* Mount options:
+    * Short options
+        * `-r`: read-only
+        * `-n`: don't update runtime database (`fstab`)
+        * `-t`: filesystem type
+    * Long options (denoted by `-o`)
+        * `exec,noexec`: enables/disables execution of programs on filesystem
+        * `suid,nosuid`: enables/disables setuid programs (allows users to execute program with temporarily elevated
+        permissions)
+        * `ro`: mount filesystem in read-only mode
+        * `rw`: mount filesystem in read-write mode
+        * `conv=rule`: for FAT systems, sets newline conversion rule.
+            * `binary`: disable character translation
+            * `text`: treat all files as text
+            * `auto`: convert files based on file extension (i.e. txt)
+* `/etc/fstab` mount options:
+    * `defaults`: mount defaults: read-write mode, executable files enabled, setuid bit enabled 
+    * `errors`: (ext2-specific) behavior for when system has trouble mounting filesystem
+    * `noauto`: prevents boot-time mount, such as for floppy disks and CD-ROMs
+    * `user`: allows non-privileged users to run mount on device
+* `/etc/fstab.d` directory and systemd units are alternatives to `/etc/fstab` that are gaining traction.
+* When running `df` as a non-root user, the sum of `Used` and `Available` blocks does not add up to the total number of
+blocks because a certain percentage is made up of hidden `reserved` blocks. This helps prevent non-root users from
+filling up the disk.
+* Do not run `fsck` on a mounted filesystem. Exception: you can mount the root partition in read-only single user mode.
+* `fsck` places disconnected inodes in the `lost+found` directory. The user can guess the filename based upon the file
+contents.
+* Filesystems are not just for representing files on storage media. They can also serve as system interfaces for
+    inspecting kernel resources, processes, etc.
+    * `proc`: Mounted on `/proc`, allows inspection of processes and kernel/hardware information.
+    * `sysfs`: Mounted on `/sys/devices`, used to view information about devices and manage them.
+    * `tmpfs`: Mounted on `/run` and elsewhere, allows users to use physical memory and swap as temporary storage.
+* An `inode` is a set of data that describes a file's type, permissions, and data location.
+* An `inode` **link count** is the number of total directory entries that point to an inode.
+* A hard link is just a manually created entry in a directory to an inode that already exists.
+* A **block bitmap** is a datastruct used to quickly tell whether a block is in use or not. Problems occur when there
+is a mismatch between the block bitmap and inode data table.
