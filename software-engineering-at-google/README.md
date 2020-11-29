@@ -237,3 +237,27 @@ in toilet stalls across the company) raised awareness of testing best practices.
 - The [truth](https://truth.dev/) is a Google assertion framework that helps make clear error messages.
 - Don't be dogmatic about DRY (Don't Repeat Yourself) when it comes to testing, as maintaning DRY can lead to
     diminished test clarity. Instead focus on DAMP (Descriptive and Maningful Phrases).
+
+## Chapter 21 - Dependency Management
+
+- SemVer (semantic versioning) is based on an estimate of compatibility by dependency developers. It often does not
+    take into account non-API related changes, such as changing code behaviors or performance regressions.
+- Google's solution is for dependent systems to "live at head" -- always use the latest version of a dependency.
+- "Live at head" requires dependency developers to test proposed changes by first testing the change on dependent
+    systems. If there are breaking changes, the provide a way for dependents to update the code before committing the
+    change upstream.
+- "Diamond dependency problem": a scenario where library `A` depends on library `B` and `C`. Both `B` and `C` depend on
+    library `D` version `1.0`. At some point a new feature and a breaking change is added to `D` version `2.0`.
+    Library `B` is updated to work with version `1.1`, but version `C` is still pinned to `1.0`. A security
+    vulnerability is detected in library `D` version `1.0`, requiring all clients to update. Users of library `A` must
+    upgrade the transitive dependency, but library `C` has not yet been updated, and only one version of library `D`
+    can be linked into an application.
+- Java applications can compile two versions of the same API by using a technique called [shading](https://softwareengineering.stackexchange.com/questions/297276/what-is-a-shaded-java-dependency).
+- SemVer solutions to dependency management depent on SAT-solvers: find a set of dependency versions that can compile 
+    together. Semver failures can produce false-negatives and false-positives.
+    - False-positive: dependency combination disallowed by the SAT-solver but could theoretically could have worked
+    - False-negative: dependency combination allowed by the SAT-solver but didn't work
+- Ideally, we should use evidence from CI tests (of dependents) and reputation (has this provider broken dependents
+    before?) to determine dependency SemVer versions rather than the discretion of developers.
+- Providing a dependency outside an organization isn't free. It can cost reputation if you break compatibility as well
+    as constrain package upgrades internally.
